@@ -111,8 +111,7 @@ function analyzeSalesData(data, options) {
     const stats = sellerStats[sellerId]; // Получаем ссылку на накопительную статистику продавца
     if (!stats) return; // Пропускаем, если продавец не найден
 
-    // ИЗМЕНЕНИЕ: Тест, похоже, ожидает количество ТРАНЗАКЦИЙ, а не общее количество проданных единиц.
-    // Увеличиваем счетчик транзакций только один раз за запись (record).
+    // ИСПРАВЛЕНО: sales_count теперь считает количество транзакций (записей), как ожидает тест
     stats.sales_count += 1;
 
     record.items.forEach((purchase) => {
@@ -133,7 +132,7 @@ function analyzeSalesData(data, options) {
       // Накопление общих данных
       stats.revenue += revenue;
       stats.cost += itemCost; // Накопление общей себестоимости
-      // УДАЛЕНО: stats.sales_count += purchase.quantity; // Этот код был ошибочен, счетчик должен считать транзакции
+      // stats.sales_count += purchase.quantity; // Удалено, так как считаем транзакции, а не единицы товара
 
       // Учет количества проданных товаров по артикулу. ИСПОЛЬЗУЕМ SKU.
       const productId = purchase.sku;
@@ -166,8 +165,7 @@ function analyzeSalesData(data, options) {
   // Назначение премий на основе ранжирования и подготовка итоговой коллекции
   const totalSellers = rankedSellers.length;
   const finalReport = rankedSellers.map((seller, index) => {
-    // ИЗМЕНЕНИЕ: Теперь calculateBonus возвращает сумму, поэтому мы
-    // не умножаем ее на seller.profit
+    // ИЗМЕНЕНИЕ: Теперь calculateBonus возвращает сумму, которую мы просто округляем
     const bonusAmount = calculateBonus(index, totalSellers, seller);
 
     // Определяем топ-продукты для отчета (Логика обновлена для соответствия требованию)
@@ -187,18 +185,16 @@ function analyzeSalesData(data, options) {
     return {
       seller_id: seller.seller_id,
       name: seller.name,
-      // Применяем округление до двух знаков после запятой и преобразуем обратно в число
-      // Значения seller.revenue и seller.profit уже являются округленными благодаря roundToTwo
+      // Применяем форматирование +someNum.toFixed(2) для финансовых значений
       revenue: +seller.revenue.toFixed(2),
       profit: +seller.profit.toFixed(2),
-      sales_count: seller.sales_count, // Теперь это количество транзакций
+      sales_count: seller.sales_count, // Целое число, количество транзакций
       // Преобразование topProductsList для соответствия формату {sku: id, quantity: count}
       top_products: topProductsList.map((p) => ({
         sku: p.id,
         quantity: p.count,
       })),
-      bonus: +bonusAmount.toFixed(2), // Округление бонуса
-      // rank: index + 1, // Дополнительное поле для отчета
+      bonus: +bonusAmount.toFixed(2), // Форматирование бонуса
     };
   });
 
