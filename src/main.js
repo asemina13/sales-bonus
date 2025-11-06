@@ -111,6 +111,10 @@ function analyzeSalesData(data, options) {
     const stats = sellerStats[sellerId]; // Получаем ссылку на накопительную статистику продавца
     if (!stats) return; // Пропускаем, если продавец не найден
 
+    // ИЗМЕНЕНИЕ: Тест, похоже, ожидает количество ТРАНЗАКЦИЙ, а не общее количество проданных единиц.
+    // Увеличиваем счетчик транзакций только один раз за запись (record).
+    stats.sales_count += 1;
+
     record.items.forEach((purchase) => {
       // Получаем товар из индекса. ИСПОЛЬЗУЕМ purchase.sku.
       const product = productsIndex[purchase.sku];
@@ -129,7 +133,7 @@ function analyzeSalesData(data, options) {
       // Накопление общих данных
       stats.revenue += revenue;
       stats.cost += itemCost; // Накопление общей себестоимости
-      stats.sales_count += purchase.quantity; // Накопление общего количества проданных единиц
+      // УДАЛЕНО: stats.sales_count += purchase.quantity; // Этот код был ошибочен, счетчик должен считать транзакции
 
       // Учет количества проданных товаров по артикулу. ИСПОЛЬЗУЕМ SKU.
       const productId = purchase.sku;
@@ -187,7 +191,7 @@ function analyzeSalesData(data, options) {
       // Значения seller.revenue и seller.profit уже являются округленными благодаря roundToTwo
       revenue: +seller.revenue.toFixed(2),
       profit: +seller.profit.toFixed(2),
-      sales_count: seller.sales_count,
+      sales_count: seller.sales_count, // Теперь это количество транзакций
       // Преобразование topProductsList для соответствия формату {sku: id, quantity: count}
       top_products: topProductsList.map((p) => ({
         sku: p.id,
