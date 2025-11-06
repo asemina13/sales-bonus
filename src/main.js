@@ -84,7 +84,7 @@ function analyzeSalesData(data, options) {
 
   // (Необязательно, но полезно) Индексация продавцов
   const sellerIndex = data.sellers.reduce((acc, seller) => {
-    acc[seller.id] = seller;
+    acc[product.id] = product;
     return acc;
   }, {});
 
@@ -121,11 +121,13 @@ function analyzeSalesData(data, options) {
       // Посчитать себестоимость (cost) товара. ИСПОЛЬЗУЕМ purchase_price.
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      // itemCost = roundToTwo(itemCost); // УДАЛЕНО: Промежуточное округление cost
+      // ИЗМЕНЕНИЕ: Округляем стоимость до накопления
+      itemCost = roundToTwo(itemCost);
 
       // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
       let revenue = calculateRevenue(purchase, product);
-      // revenue = roundToTwo(revenue); // УДАЛЕНО: Промежуточное округление revenue
+      // ИЗМЕНЕНИЕ: Округляем выручку до накопления
+      revenue = roundToTwo(revenue);
 
       // Накопление общих данных
       stats.revenue += revenue;
