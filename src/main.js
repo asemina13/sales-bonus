@@ -43,17 +43,25 @@ function calculateBonusByProfit(index, total, seller) {
  * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
  */
 function analyzeSalesData(data, options) {
-  // @TODO: Проверка входных данных
-  if (!data || !data.sellers || !data.products || !data.purchase_records) {
-    console.error("Некорректные или неполные входные данные.");
-    return [];
+  // @TODO: Проверка входных данных - ИСПРАВЛЕНО
+  if (
+    !data ||
+    !data.sellers ||
+    !data.products ||
+    !data.purchase_records ||
+    data.sellers.length === 0 ||
+    data.products.length === 0 ||
+    data.purchase_records.length === 0
+  ) {
+    // В случае некорректных данных или пустых массивов генерируем ошибку для прохождения теста
+    throw new Error("Некорректные или неполные входные данные.");
   }
 
-  // @TODO: Проверка наличия опций
-  const { calculateRevenue, calculateBonus } = options;
+  // @TODO: Проверка наличия опций - ИСПРАВЛЕНО
+  const { calculateRevenue, calculateBonus } = options || {};
   if (!calculateRevenue || !calculateBonus) {
-    console.error("Не переданы функции для расчета выручки или бонусов.");
-    return [];
+    // В случае отсутствия функций генерируем ошибку для прохождения теста
+    throw new Error("Не переданы функции для расчета выручки или бонусов.");
   }
 
   // Индексация товаров для быстрого доступа. ИСПОЛЬЗУЕМ SKU.
