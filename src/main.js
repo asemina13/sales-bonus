@@ -1,3 +1,5 @@
+const roundToTwo = (num) => Math.round(num * 100) / 100;
+
 /**
  * Функция для расчета выручки
  * @param purchase запись о покупке
@@ -5,14 +7,13 @@
  * @returns {number}
  */
 function calculateSimpleRevenue(purchase, _product) {
-  // Получаем только необходимые поля для расчета
   const { sale_price, quantity } = purchase;
 
-  // 1. Записываем в константу discountFactor остаток суммы без скидки в десятичном формате.
-  // Используем purchase.discount напрямую, чтобы избежать конфликта с деструктуризацией.
+  // Записываем в константу discountFactor остаток суммы без скидки в десятичном формате.
   const discountFactor = 1 - purchase.discount / 100;
 
-  // 2. Возвращаем выручку, рассчитанную по формуле: sale_price × quantity × discountFactor.
+  // Возвращаем выручку: sale_price × quantity × discountFactor
+  // Результат этой функции будет округлен далее, перед накоплением.
   const revenue = sale_price * quantity * discountFactor;
   return revenue;
 }
@@ -25,13 +26,20 @@ function calculateSimpleRevenue(purchase, _product) {
  * @returns {number}
  */
 function calculateBonusByProfit(index, total, seller) {
+  const { profit } = seller; // Добавлено по запросу пользователя
+
+  // Реализация условий расчета бонусов:
   if (index === 0) {
+    // Продавец с наибольшей прибылью (1-е место)
     return 0.15; // 15%
   } else if (index === 1 || index === 2) {
+    // 2-е и 3-е места
     return 0.1; // 10%
   } else if (index === total - 1) {
+    // Последнее место
     return 0.0; // 0%
   } else {
+    // Для всех остальных
     return 0.05; // 5%
   }
 }
@@ -105,13 +113,14 @@ function analyzeSalesData(data, options) {
 
       // Посчитать себестоимость (cost) товара. ИСПОЛЬЗУЕМ purchase_price.
       const unitCost = product ? product.purchase_price : 0;
-      const itemCost = unitCost * purchase.quantity;
+      let itemCost = unitCost * purchase.quantity;
+      // Округляем стоимость до накопления
+      itemCost = roundToTwo(itemCost);
 
       // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
-      const revenue = calculateRevenue(purchase, product);
-
-      // Посчитать прибыль (itemProfit)
-      const itemProfit = revenue - itemCost;
+      let revenue = calculateRevenue(purchase, product);
+      // Округляем выручку до накопления
+      revenue = roundToTwo(revenue);
 
       // Накопление общих данных
       stats.revenue += revenue;
@@ -134,11 +143,14 @@ function analyzeSalesData(data, options) {
   // =========================================================================
   // Преобразование в массив для сортировки и расчета финальной прибыли
   // =========================================================================
-  let rankedSellers = Object.values(sellerStats).map((seller) => ({
-    ...seller,
-    // Финальный расчет прибыли: Выручка - Себестоимость
-    profit: seller.revenue - seller.cost,
-  }));
+  let rankedSellers = Object.values(sellerStats).map((seller) => {
+    const calculatedProfit = seller.revenue - seller.cost;
+    return {
+      ...seller,
+      // Финальный расчет прибыли: Выручка - Себестоимость. Округляем для надежности перед сортировкой.
+      profit: roundToTwo(calculatedProfit),
+    };
+  });
 
   // Сортировка продавцов по прибыли (реализация шага)
   rankedSellers.sort((a, b) => b.profit - a.profit);
@@ -168,6 +180,7 @@ function analyzeSalesData(data, options) {
       seller_id: seller.seller_id,
       name: seller.name,
       // Применяем округление до двух знаков после запятой и преобразуем обратно в число
+      // Значения seller.revenue и seller.profit уже являются округленными благодаря roundToTwo
       revenue: +seller.revenue.toFixed(2),
       profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
