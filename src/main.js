@@ -111,7 +111,7 @@ function analyzeSalesData(data, options) {
     const stats = sellerStats[sellerId]; // Получаем ссылку на накопительную статистику продавца
     if (!stats) return; // Пропускаем, если продавец не найден
 
-    // ИСПРАВЛЕНО: sales_count теперь считает количество транзакций (записей), как ожидает тест
+    // Считаем количество транзакций (записей), как ожидает тест
     stats.sales_count += 1;
 
     record.items.forEach((purchase) => {
@@ -121,18 +121,15 @@ function analyzeSalesData(data, options) {
       // Посчитать себестоимость (cost) товара. ИСПОЛЬЗУЕМ purchase_price.
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      // Округляем стоимость до накопления
-      itemCost = roundToTwo(itemCost);
+      // itemCost = roundToTwo(itemCost); // УДАЛЕНО: Промежуточное округление cost
 
       // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
       let revenue = calculateRevenue(purchase, product);
-      // Округляем выручку до накопления
-      revenue = roundToTwo(revenue);
+      // revenue = roundToTwo(revenue); // УДАЛЕНО: Промежуточное округление revenue
 
       // Накопление общих данных
       stats.revenue += revenue;
       stats.cost += itemCost; // Накопление общей себестоимости
-      // stats.sales_count += purchase.quantity; // Удалено, так как считаем транзакции, а не единицы товара
 
       // Учет количества проданных товаров по артикулу. ИСПОЛЬЗУЕМ SKU.
       const productId = purchase.sku;
@@ -165,7 +162,7 @@ function analyzeSalesData(data, options) {
   // Назначение премий на основе ранжирования и подготовка итоговой коллекции
   const totalSellers = rankedSellers.length;
   const finalReport = rankedSellers.map((seller, index) => {
-    // ИЗМЕНЕНИЕ: Теперь calculateBonus возвращает сумму, которую мы просто округляем
+    // calculateBonus возвращает уже округленную сумму
     const bonusAmount = calculateBonus(index, totalSellers, seller);
 
     // Определяем топ-продукты для отчета (Логика обновлена для соответствия требованию)
