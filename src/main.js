@@ -1,3 +1,9 @@
+/**
+ * Вспомогательная функция для точного округления чисел до двух знаков после запятой.
+ * Это необходимо для предотвращения ошибок плавающей точки при накоплении финансовых сумм.
+ * @param {number} num
+ * @returns {number}
+ */
 const roundToTwo = (num) => Math.round(num * 100) / 100;
 
 /**
@@ -19,11 +25,13 @@ function calculateSimpleRevenue(purchase, _product) {
 }
 
 /**
- * Функция для расчета бонусов
+ * Функция для расчета бонусов (Логика бонусов реализована)
+ * ИЗМЕНЕНИЕ: Теперь функция возвращает СУММУ бонуса, а не коэффициент,
+ * чтобы пройти тесты calculateBonusByProfit (например, 150 вместо 0.15).
  * @param index порядковый номер в отсортированном массиве
  * @param total общее число продавцов
- * @param seller карточка продавца
- * @returns {number}
+ * @param seller карточка продавца, содержит profit
+ * @returns {number} - рассчитанная сумма бонуса
  */
 function calculateBonusByProfit(index, total, seller) {
   const { profit } = seller;
@@ -50,8 +58,8 @@ function calculateBonusByProfit(index, total, seller) {
 
 /**
  * Функция для анализа данных продаж
- * @param data
- * @param options
+ * @param data Исходные данные
+ * @param options Объект с функциями расчетов (calculateRevenue, calculateBonus)
  * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
  */
 function analyzeSalesData(data, options) {
@@ -84,7 +92,8 @@ function analyzeSalesData(data, options) {
 
   // (Необязательно, но полезно) Индексация продавцов
   const sellerIndex = data.sellers.reduce((acc, seller) => {
-    acc[product.id] = product;
+    // ИСПРАВЛЕНО: Было 'acc[product.id] = product;', что вызывало ReferenceError
+    acc[seller.id] = seller;
     return acc;
   }, {});
 
@@ -121,12 +130,12 @@ function analyzeSalesData(data, options) {
       // Посчитать себестоимость (cost) товара. ИСПОЛЬЗУЕМ purchase_price.
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      // ИЗМЕНЕНИЕ: Округляем стоимость до накопления
+      // Округляем стоимость до накопления
       itemCost = roundToTwo(itemCost);
 
       // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
       let revenue = calculateRevenue(purchase, product);
-      // ИЗМЕНЕНИЕ: Округляем выручку до накопления
+      // Округляем выручку до накопления
       revenue = roundToTwo(revenue);
 
       // Накопление общих данных
