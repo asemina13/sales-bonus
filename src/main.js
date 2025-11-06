@@ -26,22 +26,26 @@ function calculateSimpleRevenue(purchase, _product) {
  * @returns {number}
  */
 function calculateBonusByProfit(index, total, seller) {
-  const { profit } = seller; // Добавлено по запросу пользователя
+  const { profit } = seller;
+  let multiplier;
 
-  // Реализация условий расчета бонусов:
+  // Реализация условий расчета коэффициента бонусов:
   if (index === 0) {
     // Продавец с наибольшей прибылью (1-е место)
-    return 0.15; // 15%
+    multiplier = 0.15; // 15%
   } else if (index === 1 || index === 2) {
     // 2-е и 3-е места
-    return 0.1; // 10%
+    multiplier = 0.1; // 10%
   } else if (index === total - 1) {
     // Последнее место
-    return 0.0; // 0%
+    multiplier = 0.0; // 0%
   } else {
     // Для всех остальных
-    return 0.05; // 5%
+    multiplier = 0.05; // 5%
   }
+
+  // Рассчитываем и возвращаем абсолютную сумму бонуса, округленную до двух знаков
+  return roundToTwo(profit * multiplier);
 }
 
 /**
@@ -158,9 +162,9 @@ function analyzeSalesData(data, options) {
   // Назначение премий на основе ранжирования и подготовка итоговой коллекции
   const totalSellers = rankedSellers.length;
   const finalReport = rankedSellers.map((seller, index) => {
-    // Вызов функции расчёта бонуса с учетом позиции
-    const bonusPercentage = calculateBonus(index, totalSellers, seller);
-    const bonusAmount = seller.profit * bonusPercentage;
+    // ИЗМЕНЕНИЕ: Теперь calculateBonus возвращает сумму, поэтому мы
+    // не умножаем ее на seller.profit
+    const bonusAmount = calculateBonus(index, totalSellers, seller);
 
     // Определяем топ-продукты для отчета (Логика обновлена для соответствия требованию)
     const topProductsList = Object.entries(seller.products_sold) // [[id (SKU), count], ...]
