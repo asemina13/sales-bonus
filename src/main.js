@@ -1,4 +1,12 @@
 /**
+ * Вспомогательная функция для точного округления чисел до двух знаков после запятой.
+ * Это необходимо для предотвращения ошибок плавающей точки при накоплении финансовых сумм.
+ * @param {number} num
+ * @returns {number}
+ */
+const roundToTwo = (num) => Number(num.toFixed(2));
+
+/**
  * Функция для расчета выручки
  * @param purchase запись о покупке
  * @param _product карточка товара
@@ -12,7 +20,8 @@ function calculateSimpleRevenue(purchase, _product) {
 
   // Возвращаем выручку: sale_price × quantity × discountFactor
   // Результат этой функции будет округлен далее, перед накоплением.
-  const revenue = sale_price * quantity * discountFactor;
+  const revenue =
+    purchase.sale_price * purchase.quantity * purchase.discountFactor;
   return revenue;
 }
 
@@ -27,25 +36,21 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateBonusByProfit(index, total, seller) {
   const { profit } = seller;
-  let multiplier;
+  let bonus = 0;
 
   // Реализация условий расчета коэффициента бонусов:
-  if (index === 0) {
+  if (index === 0)
     // Продавец с наибольшей прибылью (1-е место)
-    multiplier = 0.15; // 15%
-  } else if (index === 1 || index === 2) {
+    bonus = seller.profit * 0.15; // 15%
+  else if (index === 1 || index === 2)
     // 2-е и 3-е места
-    multiplier = 0.1; // 10%
-  } else if (index === total - 1) {
+    bonus = seller.profit * 0.1; // 10%
+  else if (index === total - 1)
     // Последнее место
-    multiplier = 0.0; // 0%
-  } else {
-    // Для всех остальных
-    multiplier = 0.05; // 5%
-  }
-
-  // Рассчитываем и возвращаем абсолютную сумму бонуса, округленную до двух знаков
-  return roundToTwo(profit * multiplier);
+    bonus = 0; // 0%
+  // Для всех остальных
+  else bonus = seller.profit * 0.05; // 5%
+  return bonus;
 }
 
 /**
