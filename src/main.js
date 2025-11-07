@@ -126,13 +126,13 @@ function analyzeSalesData(data, options) {
       // 1. Расчет себестоимости (cost)
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      itemCost = roundToTwo(itemCost); // <-- Округление стоимости товара
+      // УДАЛЕНО: itemCost = roundToTwo(itemCost); // <-- Убрали промежуточное округление
 
       // 2. Расчет выручки (revenue) через переданную функцию
       let revenue = calculateRevenue(purchase, product);
-      revenue = roundToTwo(revenue); // <-- Округление выручки с товара
+      // УДАЛЕНО: revenue = roundToTwo(revenue); // <-- Убрали промежуточное округление
 
-      // 3. Накопление общих данных (накопление уже округленных значений)
+      // 3. Накопление общих данных (накопление с высокой точностью)
       stats.revenue += revenue;
       stats.cost += itemCost;
 
@@ -147,16 +147,12 @@ function analyzeSalesData(data, options) {
 
   // Преобразование в массив для сортировки и расчета финальной прибыли
   let rankedSellers = Object.values(sellerStats).map((seller) => {
-    // ВАЖНОЕ ИЗМЕНЕНИЕ: Убираем повторное округление накопленных сумм,
-    // так как они уже накапливались из округленных компонентов.
-
-    // profit рассчитывается из накопленных значений, которые уже округлены.
+    // profit рассчитывается из накопленных значений, которые имеют высокую точность.
     const calculatedProfit = seller.revenue - seller.cost;
 
     return {
       ...seller,
-      // profit рассчитывается из уже округленных, но высокоточных сумм.
-      // Результат вычитания округляем.
+      // Прибыль округляется только на финальном этапе расчета.
       profit: roundToTwo(calculatedProfit),
     };
   });
@@ -188,8 +184,8 @@ function analyzeSalesData(data, options) {
     return {
       seller_id: seller.seller_id,
       name: seller.name,
-      // revenue и profit уже должны быть точными благодаря roundToTwo
-      revenue: +seller.revenue.toFixed(2),
+      // revenue: округляется только здесь, при выводе
+      revenue: +roundToTwo(seller.revenue).toFixed(2),
       profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
       top_products: topProductsList.map((p) => ({
