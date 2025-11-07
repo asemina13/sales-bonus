@@ -126,13 +126,15 @@ function analyzeSalesData(data, options) {
       // 1. Расчет себестоимости (cost)
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      itemCost = roundToTwo(itemCost);
+      // ВАЖНОЕ ИЗМЕНЕНИЕ: Убран roundToTwo здесь.
+      // itemCost = roundToTwo(itemCost);
 
       // 2. Расчет выручки (revenue) через переданную функцию
       let revenue = calculateRevenue(purchase, product);
-      revenue = roundToTwo(revenue);
+      // ВАЖНОЕ ИЗМЕНЕНИЕ: Убран roundToTwo здесь.
+      // revenue = roundToTwo(revenue);
 
-      // 3. Накопление общих данных
+      // 3. Накопление общих данных (накопление с высокой точностью)
       stats.revenue += revenue;
       stats.cost += itemCost;
 
@@ -147,8 +149,8 @@ function analyzeSalesData(data, options) {
 
   // Преобразование в массив для сортировки и расчета финальной прибыли
   let rankedSellers = Object.values(sellerStats).map((seller) => {
-    // Явно округляем накопленные суммы перед вычитанием,
-    // чтобы устранить накопившиеся ошибки плавающей точки.
+    // Округляем накопленные СУММЫ (totals) только перед вычитанием,
+    // чтобы устранить накопившиеся ошибки плавающей точки и совпасть с логикой теста.
     const finalRevenue = roundToTwo(seller.revenue);
     const finalCost = roundToTwo(seller.cost);
 
@@ -160,7 +162,6 @@ function analyzeSalesData(data, options) {
       revenue: finalRevenue,
       // Финальный расчет прибыли. Округляем результат.
       profit: roundToTwo(calculatedProfit),
-      // Обновляем cost, чтобы он был округленным, для консистентности (хотя он не возвращается)
       cost: finalCost,
     };
   });
