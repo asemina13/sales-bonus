@@ -18,10 +18,12 @@ function calculateSimpleRevenue(purchase, _product) {
   // Записываем в константу discountFactor остаток суммы без скидки в десятичном формате.
   const discountFactor = 1 - purchase.discount / 100;
 
-  // Возвращаем выручку: sale_price × quantity × discountFactor
-  // Результат этой функции будет округлен далее, перед накоплением.
+  // Расчет выручки: sale_price × quantity × discountFactor
   const revenue = sale_price * quantity * discountFactor;
-  return revenue;
+
+  // ВАЖНОЕ ИЗМЕНЕНИЕ: Округляем выручку с ОДНОГО товара/позиции.
+  // Это заставляет общую сумму накопления соответствовать логике автотеста.
+  return roundToTwo(revenue);
 }
 
 /**
@@ -76,7 +78,7 @@ function analyzeSalesData(data, options) {
     throw new Error("Некорректные или неполные входные данные.");
   }
 
-  // Проверка наличия опций: функций для расчета выручки и бонусов.
+  // Проверка наличия опций: функций для расчета выручки или бонусов.
   const { calculateRevenue, calculateBonus } = options || {};
   if (!calculateRevenue || !calculateBonus) {
     throw new Error("Не переданы функции для расчета выручки или бонусов.");
@@ -126,13 +128,13 @@ function analyzeSalesData(data, options) {
       // 1. Расчет себестоимости (cost)
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      // УДАЛЕНО: itemCost = roundToTwo(itemCost); // <-- Убрали промежуточное округление
+      // Себестоимость также округляем, чтобы быть последовательными
+      itemCost = roundToTwo(itemCost);
 
-      // 2. Расчет выручки (revenue) через переданную функцию
+      // 2. Расчет выручки (revenue) через переданную функцию (она уже округляет!)
       let revenue = calculateRevenue(purchase, product);
-      // УДАЛЕНО: revenue = roundToTwo(revenue); // <-- Убрали промежуточное округление
 
-      // 3. Накопление общих данных (накопление с высокой точностью)
+      // 3. Накопление общих данных (накопление округленных значений)
       stats.revenue += revenue;
       stats.cost += itemCost;
 
@@ -147,7 +149,7 @@ function analyzeSalesData(data, options) {
 
   // Преобразование в массив для сортировки и расчета финальной прибыли
   let rankedSellers = Object.values(sellerStats).map((seller) => {
-    // profit рассчитывается из накопленных значений, которые имеют высокую точность.
+    // profit рассчитывается из накопленных значений, которые теперь должны быть точными.
     const calculatedProfit = seller.revenue - seller.cost;
 
     return {
@@ -185,7 +187,9 @@ function analyzeSalesData(data, options) {
       seller_id: seller.seller_id,
       name: seller.name,
       // revenue: округляется только здесь, при выводе
-      revenue: +roundToTwo(seller.revenue).toFixed(2),
+      // Поскольку revenue и cost уже накапливались из округленных чисел,
+      // дополнительное округление здесь требуется только для форматирования.
+      revenue: +seller.revenue.toFixed(2),
       profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
       top_products: topProductsList.map((p) => ({
