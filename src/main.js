@@ -4,7 +4,7 @@
  * @param {number} num
  * @returns {number}
  */
-const roundToTwo = (num) => Math.round(num * 100) / 100;
+const roundToTwo = (num) => Number(num.toFixed(2));
 
 /**
  * Функция для расчета выручки
