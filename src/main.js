@@ -114,36 +114,27 @@ function analyzeSalesData(data, options) {
 
   // Расчёт выручки и прибыли для каждого продавца
   data.purchase_records.forEach((record) => {
-    const sellerId = record.seller_id;
-    const stats = sellerStats[sellerId];
-    if (!stats) return;
-
-    // Увеличиваем счетчик транзакций (чеков)
-    stats.sales_count += 1;
+    const sellerId = sellerIndex[record.seller_id];
+    sellerId.sales_count += 1;
+    sellerId.revenue += record.total_amount;
 
     record.items.forEach((purchase) => {
       // Получаем товар из индекса по SKU
       const product = productsIndex[purchase.sku];
 
       // 1. Расчет себестоимости (cost)
-      const unitCost = product ? product.purchase_price : 0;
-      let itemCost = unitCost * purchase.quantity;
-      // Себестоимость также округляем, чтобы быть последовательными
-      itemCost = roundToTwo(itemCost);
+      const unitCost = product.purchase_price * purchase.quantity;
 
       // 2. Расчет выручки (revenue) через переданную функцию (она уже округляет!)
-      let revenue = calculateRevenue(purchase, product);
+      const revenue = calculateRevenue(purchase, product);
+      const calculatedProfit = revenue - cost;
 
-      // 3. Накопление общих данных (накопление округленных значений)
-      stats.revenue += revenue;
-      stats.cost += itemCost;
+      sellerId.calculatedProfit += calculatedProfit;
 
-      // 4. Учет количества проданных товаров по артикулу (SKU)
-      const productId = purchase.sku;
-      if (!stats.products_sold[productId]) {
-        stats.products_sold[productId] = 0;
+      if (!sellerId.products_sold[purchase.sku]) {
+        sellerId.products_sold[purchase.sku] = 0;
       }
-      stats.products_sold[productId] += purchase.quantity;
+      sellerId.products_sold[purchase.sku] += purchase.quantity;
     });
   });
 
