@@ -13,8 +13,6 @@ const roundToTwo = (num) => Number(num.toFixed(2));
  * @returns {number}
  */
 function calculateSimpleRevenue(purchase, _product) {
-  const { sale_price, quantity } = purchase;
-
   // Записываем в константу discountFactor остаток суммы без скидки в десятичном формате.
   const discountFactor = 1 - purchase.discount / 100;
 
