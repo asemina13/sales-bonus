@@ -126,15 +126,13 @@ function analyzeSalesData(data, options) {
       // 1. Расчет себестоимости (cost)
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      // ВАЖНОЕ ИЗМЕНЕНИЕ: Убран roundToTwo здесь.
-      // itemCost = roundToTwo(itemCost);
+      itemCost = roundToTwo(itemCost); // <-- Округление стоимости товара
 
       // 2. Расчет выручки (revenue) через переданную функцию
       let revenue = calculateRevenue(purchase, product);
-      // ВАЖНОЕ ИЗМЕНЕНИЕ: Убран roundToTwo здесь.
-      // revenue = roundToTwo(revenue);
+      revenue = roundToTwo(revenue); // <-- Округление выручки с товара
 
-      // 3. Накопление общих данных (накопление с высокой точностью)
+      // 3. Накопление общих данных (накопление уже округленных значений)
       stats.revenue += revenue;
       stats.cost += itemCost;
 
@@ -149,20 +147,17 @@ function analyzeSalesData(data, options) {
 
   // Преобразование в массив для сортировки и расчета финальной прибыли
   let rankedSellers = Object.values(sellerStats).map((seller) => {
-    // Округляем накопленные СУММЫ (totals) только перед вычитанием,
-    // чтобы устранить накопившиеся ошибки плавающей точки и совпасть с логикой теста.
-    const finalRevenue = roundToTwo(seller.revenue);
-    const finalCost = roundToTwo(seller.cost);
+    // ВАЖНОЕ ИЗМЕНЕНИЕ: Убираем повторное округление накопленных сумм,
+    // так как они уже накапливались из округленных компонентов.
 
-    const calculatedProfit = finalRevenue - finalCost;
+    // profit рассчитывается из накопленных значений, которые уже округлены.
+    const calculatedProfit = seller.revenue - seller.cost;
 
     return {
       ...seller,
-      // Используем округленную сумму для revenue в финальном отчете
-      revenue: finalRevenue,
-      // Финальный расчет прибыли. Округляем результат.
+      // profit рассчитывается из уже округленных, но высокоточных сумм.
+      // Результат вычитания округляем.
       profit: roundToTwo(calculatedProfit),
-      cost: finalCost,
     };
   });
 
@@ -193,6 +188,7 @@ function analyzeSalesData(data, options) {
     return {
       seller_id: seller.seller_id,
       name: seller.name,
+      // revenue и profit уже должны быть точными благодаря roundToTwo
       revenue: +seller.revenue.toFixed(2),
       profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
