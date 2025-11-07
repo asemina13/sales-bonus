@@ -14,13 +14,13 @@ const roundToTwo = (num) => Number(num.toFixed(2));
  */
 function calculateSimpleRevenue(purchase, _product) {
   const { sale_price, quantity } = purchase;
+
   // Записываем в константу discountFactor остаток суммы без скидки в десятичном формате.
   const discountFactor = 1 - purchase.discount / 100;
 
   // Возвращаем выручку: sale_price × quantity × discountFactor
   // Результат этой функции будет округлен далее, перед накоплением.
-  const revenue =
-    purchase.sale_price * purchase.quantity * purchase.discountFactor;
+  const revenue = sale_price * quantity * discountFactor;
   return revenue;
 }
 
@@ -35,21 +35,25 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateBonusByProfit(index, total, seller) {
   const { profit } = seller;
-  let bonus = 0;
+  let multiplier;
 
   // Реализация условий расчета коэффициента бонусов:
-  if (index === 0)
+  if (index === 0) {
     // Продавец с наибольшей прибылью (1-е место)
-    bonus = seller.profit * 0.15; // 15%
-  else if (index === 1 || index === 2)
+    multiplier = 0.15; // 15%
+  } else if (index === 1 || index === 2) {
     // 2-е и 3-е места
-    bonus = seller.profit * 0.1; // 10%
-  else if (index === total - 1)
+    multiplier = 0.1; // 10%
+  } else if (index === total - 1) {
     // Последнее место
-    bonus = 0; // 0%
-  // Для всех остальных
-  else bonus = seller.profit * 0.05; // 5%
-  return bonus;
+    multiplier = 0.0; // 0%
+  } else {
+    // Для всех остальных
+    multiplier = 0.05; // 5%
+  }
+
+  // Рассчитываем и возвращаем абсолютную сумму бонуса, округленную до двух знаков
+  return roundToTwo(profit * multiplier);
 }
 
 /**
