@@ -114,33 +114,45 @@ function analyzeSalesData(data, options) {
 
   // Расчёт выручки и прибыли для каждого продавца
   data.purchase_records.forEach((record) => {
-    const sellerId = sellerIndex[record.seller_id];
-    sellerId.sales_count += 1;
-    sellerId.revenue += record.total_amount;
+    const sellerId = record.seller_id;
+    // ИСПРАВЛЕНО: Правильно получаем объект статистики по ID
+    const stats = sellerStats[sellerId];
+    if (!stats) return;
+
+    // Увеличиваем счетчик транзакций (чеков)
+    stats.sales_count += 1;
 
     record.items.forEach((purchase) => {
       // Получаем товар из индекса по SKU
       const product = productsIndex[purchase.sku];
 
       // 1. Расчет себестоимости (cost)
-      const unitCost = product.purchase_price * purchase.quantity;
+      const unitCost = product ? product.purchase_price : 0;
+      let itemCost = unitCost * purchase.quantity;
+      // Округляем, чтобы соответствовать логике округления выручки
+      itemCost = roundToTwo(itemCost);
 
       // 2. Расчет выручки (revenue) через переданную функцию (она уже округляет!)
       const revenue = calculateRevenue(purchase, product);
-      const calculatedProfit = revenue - cost;
 
-      sellerId.calculatedProfit += calculatedProfit;
+      // УДАЛЕНО: const calculatedProfit = revenue - cost; // Это было причиной ReferenceError, а логика неверна.
 
-      if (!sellerId.products_sold[purchase.sku]) {
-        sellerId.products_sold[purchase.sku] = 0;
+      // 3. Накопление общих данных
+      stats.revenue += revenue;
+      stats.cost += itemCost;
+
+      // 4. Учет количества проданных товаров по артикулу (SKU)
+      const productId = purchase.sku;
+      if (!stats.products_sold[productId]) {
+        stats.products_sold[productId] = 0;
       }
-      sellerId.products_sold[purchase.sku] += purchase.quantity;
+      stats.products_sold[productId] += purchase.quantity;
     });
   });
 
   // Преобразование в массив для сортировки и расчета финальной прибыли
   let rankedSellers = Object.values(sellerStats).map((seller) => {
-    // profit рассчитывается из накопленных значений, которые теперь должны быть точными.
+    // profit рассчитывается из накопленных значений.
     const calculatedProfit = seller.revenue - seller.cost;
 
     return {
@@ -178,8 +190,6 @@ function analyzeSalesData(data, options) {
       seller_id: seller.seller_id,
       name: seller.name,
       // revenue: округляется только здесь, при выводе
-      // Поскольку revenue и cost уже накапливались из округленных чисел,
-      // дополнительное округление здесь требуется только для форматирования.
       revenue: +seller.revenue.toFixed(2),
       profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
