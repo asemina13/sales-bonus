@@ -135,8 +135,8 @@ function analyzeSalesData(data, options) {
       const revenue = calculateRevenue(purchase, product);
 
       // 3. Накопление общих данных
-      stats.revenue += revenue;
-      stats.cost += itemCost;
+      // stats.revenue += revenue;
+      // stats.cost += itemCost;
 
       // 4. Учет количества проданных товаров по артикулу (SKU)
       const productId = purchase.sku;
@@ -155,7 +155,8 @@ function analyzeSalesData(data, options) {
     return {
       ...seller,
       // ИЗМЕНЕНИЕ: Убрано промежуточное округление прибыли.
-      profit: calculatedProfit, // Округление будет только при финальном выводе
+      profit: roundToTwo(calculatedProfit), // Округление будет только при финальном выводе
+      revenue: roundToTwo(seller.revenue),
     };
   });
 
@@ -187,16 +188,16 @@ function analyzeSalesData(data, options) {
       seller_id: seller.seller_id,
       name: seller.name,
       // revenue: округляется здесь, при выводе
-      revenue: +seller.revenue.toFixed(2),
+      revenue: seller.revenue,
       // profit: округляется здесь, при выводе
-      profit: +seller.profit.toFixed(2),
+      profit: seller.profit,
       sales_count: seller.sales_count,
       top_products: topProductsList.map((p) => ({
         sku: p.id,
         quantity: p.count,
       })),
       // bonus: округляется здесь, при выводе
-      bonus: +bonusAmount.toFixed(2),
+      bonus: roundToTwo(bonusAmount),
     };
   });
 
