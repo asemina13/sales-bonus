@@ -97,7 +97,8 @@ function analyzeSalesData(data, options) {
 
   // Подготовка промежуточных данных для сбора статистики (sellerStats)
   const sellerStats = data.sellers.reduce((acc, seller) => {
-    const name = seller.name || seller.first_name + " " + seller.last_name;
+    const name =
+      seller.name || (seller.first_name + " " + seller.last_name).trim();
 
     acc[seller.id] = {
       seller_id: seller.id,
@@ -114,7 +115,6 @@ function analyzeSalesData(data, options) {
   // Расчёт выручки и прибыли для каждого продавца
   data.purchase_records.forEach((record) => {
     const sellerId = record.seller_id;
-    // ИСПРАВЛЕНО: Правильно получаем объект статистики по ID
     const stats = sellerStats[sellerId];
     if (!stats) return;
 
@@ -127,35 +127,30 @@ function analyzeSalesData(data, options) {
 
       // 1. Расчет себестоимости (cost)
       const unitCost = product ? product.purchase_price : 0;
-      let itemCost = unitCost * purchase.quantity;
-      // ИЗМЕНЕНИЕ: Убрано округление себестоимости (itemCost).
-      itemCost = roundToTwo(itemCost); // УДАЛЕНО
+      const itemCost = unitCost * purchase.quantity; // Без округления
 
-      // 2. Расчет выручки (revenue) через переданную функцию (теперь она НЕ округляет)
+      // 2. Расчет выручки (revenue) через переданную функцию
       const revenue = calculateRevenue(purchase, product);
 
-      // 3. Накопление общих данных
-      stats.revenue = roundToTwo(stats.revenue + revenue);
-      stats.cost = roundToTwo(stats.cost + itemCost);
+      // 3. Накопление общих данных — БЕЗ ОКРУГЛЕНИЯ
+      stats.revenue += revenue;
+      stats.cost += itemCost;
 
       // 4. Учет количества проданных товаров по артикулу (SKU)
       const productId = purchase.sku;
-      if (!stats.products_sold[productId]) {
-        stats.products_sold[productId] = 0;
-      }
-      stats.products_sold[productId] += purchase.quantity;
+      stats.products_sold[productId] =
+        (stats.products_sold[productId] || 0) + purchase.quantity;
     });
   });
 
   // Преобразование в массив для сортировки и расчета финальной прибыли
   let rankedSellers = Object.values(sellerStats).map((seller) => {
-    // profit рассчитывается из накопленных значений.
+    // profit рассчитывается из накопленных значений — БЕЗ ОКРУГЛЕНИЯ
     const calculatedProfit = seller.revenue - seller.cost;
 
     return {
       ...seller,
-      // ИЗМЕНЕНИЕ: Убрано промежуточное округление прибыли.
-      profit: roundToTwo(calculatedProfit), // Округление будет только при финальном выводе
+      profit: calculatedProfit, // Без roundToTwo
     };
   });
 
@@ -182,21 +177,18 @@ function analyzeSalesData(data, options) {
         };
       });
 
-    // Формирование итогового объекта с ФИНАЛЬНЫМ ФОРМАТИРОВАНИЕМ финансовых полей
+    // Формирование итогового объекта с ФИНАЛЬНЫМ ОКРУГЛЕНИЕМ
     return {
       seller_id: seller.seller_id,
       name: seller.name,
-      // revenue: округляется здесь, при выводе
-      revenue: roundToTwo(seller.revenue),
-      // profit: округляется здесь, при выводе
-      profit: roundToTwo(seller.profit),
+      revenue: roundToTwo(seller.revenue), // ОКРУГЛЕНИЕ ЗДЕСЬ
+      profit: roundToTwo(seller.profit), // ОКРУГЛЕНИЕ ЗДЕСЬ
       sales_count: seller.sales_count,
       top_products: topProductsList.map((p) => ({
         sku: p.id,
         quantity: p.count,
       })),
-      // bonus: округляется здесь, при выводе
-      bonus: roundToTwo(bonusAmount),
+      bonus: roundToTwo(bonusAmount), // ОКРУГЛЕНИЕ ЗДЕСЬ
     };
   });
 
