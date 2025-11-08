@@ -21,9 +21,8 @@ function calculateSimpleRevenue(purchase, _product) {
   // Расчет выручки: sale_price × quantity × discountFactor
   const revenue = sale_price * quantity * discountFactor;
 
-  // ВАЖНОЕ ИЗМЕНЕНИЕ: Округляем выручку с ОДНОГО товара/позиции.
-  // Это заставляет общую сумму накопления соответствовать логике автотеста.
-  return roundToTwo(revenue);
+  // ИЗМЕНЕНИЕ: Убрано округление выручки с ОДНОГО товара/позиции.
+  return revenue; // Возвращаем не округленное значение
 }
 
 /**
@@ -54,8 +53,8 @@ function calculateBonusByProfit(index, total, seller) {
     multiplier = 0.05; // 5%
   }
 
-  // Рассчитываем и возвращаем абсолютную сумму бонуса, округленную до двух знаков
-  return roundToTwo(profit * multiplier);
+  // ИЗМЕНЕНИЕ: Убрано округление абсолютной суммы бонуса.
+  return profit * multiplier; // Возвращаем не округленное значение
 }
 
 /**
@@ -129,15 +128,15 @@ function analyzeSalesData(data, options) {
       // 1. Расчет себестоимости (cost)
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
-      // Округляем, чтобы соответствовать логике округления выручки
+      // ИЗМЕНЕНИЕ: Убрано округление себестоимости (itemCost).
+      // itemCost = roundToTwo(itemCost); // УДАЛЕНО
 
-      // 2. Расчет выручки (revenue) через переданную функцию (она уже округляет!)
+      // 2. Расчет выручки (revenue) через переданную функцию (теперь она НЕ округляет)
       const revenue = calculateRevenue(purchase, product);
-
-      // УДАЛЕНО: const calculatedProfit = revenue - cost; // Это было причиной ReferenceError, а логика неверна.
 
       // 3. Накопление общих данных
       stats.revenue += revenue;
+      stats.cost += itemCost;
 
       // 4. Учет количества проданных товаров по артикулу (SKU)
       const productId = purchase.sku;
@@ -155,8 +154,8 @@ function analyzeSalesData(data, options) {
 
     return {
       ...seller,
-      // Прибыль округляется только на финальном этапе расчета.
-      profit: roundToTwo(calculatedProfit),
+      // ИЗМЕНЕНИЕ: Убрано промежуточное округление прибыли.
+      profit: calculatedProfit, // Округление будет только при финальном выводе
     };
   });
 
@@ -166,7 +165,7 @@ function analyzeSalesData(data, options) {
   // Назначение премий на основе ранжирования и подготовка итоговой коллекции
   const totalSellers = rankedSellers.length;
   const finalReport = rankedSellers.map((seller, index) => {
-    // Расчет бонуса
+    // Расчет бонуса (возвращает не округленное значение)
     const bonusAmount = calculateBonus(index, totalSellers, seller);
 
     // Формирование топ-10 проданных продуктов
@@ -183,18 +182,20 @@ function analyzeSalesData(data, options) {
         };
       });
 
-    // Формирование итогового объекта с форматированием финансовых полей
+    // Формирование итогового объекта с ФИНАЛЬНЫМ ФОРМАТИРОВАНИЕМ финансовых полей
     return {
       seller_id: seller.seller_id,
       name: seller.name,
-      // revenue: округляется только здесь, при выводе
+      // revenue: округляется здесь, при выводе
       revenue: +seller.revenue.toFixed(2),
+      // profit: округляется здесь, при выводе
       profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
       top_products: topProductsList.map((p) => ({
         sku: p.id,
         quantity: p.count,
       })),
+      // bonus: округляется здесь, при выводе
       bonus: +bonusAmount.toFixed(2),
     };
   });
