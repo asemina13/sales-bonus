@@ -156,7 +156,6 @@ function analyzeSalesData(data, options) {
       ...seller,
       // ИЗМЕНЕНИЕ: Убрано промежуточное округление прибыли.
       profit: roundToTwo(calculatedProfit), // Округление будет только при финальном выводе
-      revenue: roundToTwo(seller.revenue),
     };
   });
 
@@ -188,9 +187,9 @@ function analyzeSalesData(data, options) {
       seller_id: seller.seller_id,
       name: seller.name,
       // revenue: округляется здесь, при выводе
-      revenue: seller.revenue,
+      revenue: roundToTwo(seller.revenue),
       // profit: округляется здесь, при выводе
-      profit: +seller.profit.toFixed(2),
+      profit: roundToTwo(seller.profit),
       sales_count: seller.sales_count,
       top_products: topProductsList.map((p) => ({
         sku: p.id,
