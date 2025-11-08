@@ -135,8 +135,8 @@ function analyzeSalesData(data, options) {
       const revenue = calculateRevenue(purchase, product);
 
       // 3. Накопление общих данных
-      // stats.revenue += revenue;
-      // stats.cost += itemCost;
+      stats.revenue += revenue;
+      stats.cost += itemCost;
 
       // 4. Учет количества проданных товаров по артикулу (SKU)
       const productId = purchase.sku;
