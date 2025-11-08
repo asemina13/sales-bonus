@@ -130,7 +130,6 @@ function analyzeSalesData(data, options) {
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
       // Округляем, чтобы соответствовать логике округления выручки
-      itemCost = roundToTwo(itemCost);
 
       // 2. Расчет выручки (revenue) через переданную функцию (она уже округляет!)
       const revenue = calculateRevenue(purchase, product);
@@ -139,7 +138,6 @@ function analyzeSalesData(data, options) {
 
       // 3. Накопление общих данных
       stats.revenue += revenue;
-      stats.cost += itemCost;
 
       // 4. Учет количества проданных товаров по артикулу (SKU)
       const productId = purchase.sku;
