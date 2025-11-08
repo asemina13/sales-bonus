@@ -129,7 +129,7 @@ function analyzeSalesData(data, options) {
       const unitCost = product ? product.purchase_price : 0;
       let itemCost = unitCost * purchase.quantity;
       // ИЗМЕНЕНИЕ: Убрано округление себестоимости (itemCost).
-      // itemCost = roundToTwo(itemCost); // УДАЛЕНО
+      itemCost = roundToTwo(itemCost); // УДАЛЕНО
 
       // 2. Расчет выручки (revenue) через переданную функцию (теперь она НЕ округляет)
       const revenue = calculateRevenue(purchase, product);
