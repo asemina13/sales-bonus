@@ -190,7 +190,7 @@ function analyzeSalesData(data, options) {
       // revenue: округляется здесь, при выводе
       revenue: seller.revenue,
       // profit: округляется здесь, при выводе
-      profit: seller.profit,
+      profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
       top_products: topProductsList.map((p) => ({
         sku: p.id,
