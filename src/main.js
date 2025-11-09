@@ -122,13 +122,10 @@ function analyzeSalesData(data, options) {
       seller_id: seller.seller_id,
       name: seller.name,
       revenue: roundToTwo(seller.revenue),
-      profit: roundToTwo(seller.profit), // ОКРУГЛЯЕМ ЗДЕСЬ
+      profit: roundToTwo(seller.profit),
       sales_count: seller.sales_count,
-      top_products: topProductsList.map((p) => ({
-        sku: p.id,
-        quantity: p.count,
-      })),
-      bonus: roundToTwo(bonusAmount),
+      top_products: topProducts,
+      bonus: roundToTwo(bonus),
     };
   });
 }
