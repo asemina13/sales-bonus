@@ -1,9 +1,4 @@
 /**
- * Округление до 2 знаков
- */
-const roundToTwo = (num) => Number((Math.round(num * 100) / 100).toFixed(2));
-
-/**
  * Выручка от одной позиции
  */
 function calculateSimpleRevenue(purchase, _product) {
@@ -86,8 +81,8 @@ function analyzeSalesData(data, options) {
       const itemCost = roundToTwo(product.purchase_price * purchase.quantity);
       const revenue = roundToTwo(calculateRevenue(purchase, product));
 
-      stats.revenue += revenue;
-      stats.cost += itemCost;
+      stats.revenue = roundToTwo(stats.revenue + revenue);
+      stats.cost = roundToTwo(stats.cost + itemCost);
 
       const sku = purchase.sku;
       stats.products_sold[sku] =
@@ -121,8 +116,11 @@ function analyzeSalesData(data, options) {
       revenue: roundToTwo(seller.revenue),
       profit: roundToTwo(seller.profit), // ОКРУГЛЯЕМ ЗДЕСЬ
       sales_count: seller.sales_count,
-      top_products: topProducts,
-      bonus: bonus, // ОКРУГЛЯЕМ ЗДЕСЬ
+      top_products: topProductsList.map((p) => ({
+        sku: p.id,
+        quantity: p.count,
+      })),
+      bonus: roundToTwo(bonusAmount),
     };
   });
 }
