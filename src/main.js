@@ -12,7 +12,7 @@ const roundToTwo = (num) => Number(num.toFixed(2));
 function calculateSimpleRevenue(purchase, _product) {
   const { sale_price, quantity, discount = 0 } = purchase;
   const discountFactor = 1 - discount / 100;
-  return sale_price * quantity * discountFactor; // без округления
+  return roundToTwo(sale_price * quantity * discountFactor);
 }
 
 /**
@@ -27,7 +27,7 @@ function calculateBonusByProfit(index, total, seller) {
   else if (index === total - 1) multiplier = 0.0;
   else multiplier = 0.05;
 
-  return profit * multiplier; // без округления
+  return profit * multiplier;
 }
 
 /**
@@ -87,7 +87,7 @@ function analyzeSalesData(data, options) {
 
       // Округляем на уровне позиции
       const itemCost = roundToTwo(product.purchase_price * purchase.quantity);
-      const revenue = roundToTwo(calculateRevenue(purchase, product));
+      const revenue = calculateRevenue(purchase, product);
 
       stats.revenue = roundToTwo(stats.revenue + revenue);
       stats.cost = roundToTwo(stats.cost + itemCost);
@@ -101,7 +101,7 @@ function analyzeSalesData(data, options) {
   // === Массив продавцов с точной прибылью ===
   let rankedSellers = Object.values(sellerStats).map((s) => ({
     ...s,
-    profit: s.revenue - s.cost, // НЕ ОКРУГЛЯЕМ
+    profit: s.revenue - s.cost,
   }));
 
   // === Сортировка ===
