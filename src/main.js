@@ -1,4 +1,12 @@
 /**
+ * Вспомогательная функция для точного округления чисел до двух знаков после запятой.
+ * Это необходимо для предотвращения ошибок плавающей точки при накоплении финансовых сумм.
+ * @param {number} num
+ * @returns {number}
+ */
+const roundToTwo = (num) => Number(num.toFixed(2));
+
+/**
  * Выручка от одной позиции
  */
 function calculateSimpleRevenue(purchase, _product) {
