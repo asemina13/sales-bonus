@@ -12,7 +12,7 @@ const roundToTwo = (num) => Number(num.toFixed(2));
 function calculateSimpleRevenue(purchase, _product) {
   const { sale_price, quantity, discount = 0 } = purchase;
   const discountFactor = 1 - discount / 100;
-  return roundToTwo(sale_price * quantity * discountFactor);
+  return sale_price * quantity * discountFactor;
 }
 
 /**
@@ -86,11 +86,11 @@ function analyzeSalesData(data, options) {
       const product = productsIndex[purchase.sku] || { purchase_price: 0 };
 
       // Округляем на уровне позиции
-      const itemCost = roundToTwo(product.purchase_price * purchase.quantity);
+      const itemCost = product.purchase_price * purchase.quantity;
       const revenue = calculateRevenue(purchase, product);
 
-      stats.revenue = roundToTwo(stats.revenue + revenue);
-      stats.cost = roundToTwo(stats.cost + itemCost);
+      stats.revenue += revenue;
+      stats.cost += itemCost;
 
       const sku = purchase.sku;
       stats.products_sold[sku] =
@@ -109,9 +109,7 @@ function analyzeSalesData(data, options) {
 
   // === Финальный отчёт с округлением ===
   return rankedSellers.map((seller, index) => {
-    const bonus = roundToTwo(
-      calculateBonus(index, rankedSellers.length, seller)
-    );
+    const bonus = calculateBonus(index, rankedSellers.length, seller);
 
     const topProducts = Object.entries(seller.products_sold)
       .map(([sku, quantity]) => ({ sku, quantity }))
